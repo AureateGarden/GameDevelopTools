@@ -6,7 +6,7 @@
 
 >pip install xlrd
 
-![image](https://github.com/AureateGarden/GameDevelopTools/blob/master/Excel2Json/Temp/1.png)
+![](https://github.com/AureateGarden/GameDevelopTools/blob/master/Excel2Json/Temp/1.png)
 类似这样的列表，确定开始位置，在里面添加“[start]”标签且确保全表只有一个” [start]”标签，转化标志位后面一列为键，后面第二列之后转化为值。
 
 用法在cmd里面使用“python Excel2Json.py -h” 查看具体参数
@@ -15,7 +15,7 @@
 
 >python Excel2Json.py -i test.xlsx -o out.json -s 0
 
-![image](https://github.com/AureateGarden/GameDevelopTools/blob/master/Excel2Json/Temp/2.png)
+![](https://github.com/AureateGarden/GameDevelopTools/blob/master/Excel2Json/Temp/2.png)
 
 Develop Log:
 
