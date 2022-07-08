@@ -1,7 +1,9 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
-import os, sys, getopt, xlrd, json, re
+from ast import Expression
+from audioop import reverse
+import os, sys, getopt, openpyxl, json, re
 
 Version = \
 R'''
@@ -40,17 +42,20 @@ sorry about that I can only use chinglish to write this help infomation.^_^
 '''
 
 ShortOpts = "-h-v-i:-o:-s:"
-LongOpts = ["help", "version", "input=", "output=", "sheet="]
+LongOpts = ("help", "version", "input=", "output=", "sheet=")
 
 DefualtFileName = "Output.json"
 LocalPath = os.path.dirname(os.path.abspath(__file__))
 InputPath = ""
 OutputPath = ""
-StartFlag = "[start]"
 JumpFlag = "[ignore]"
-TransformSheet = -1;
+TransformSheet = ""
+SkipStartRow = 3
+SkipStartColumn = 1
 
-Eldata = None;
+Eldata = None
+
+builtInType = ("int", "float", "string", "boolean", "enum")
 
 class Vector:
 	"""docstring for Vector"""
@@ -84,41 +89,35 @@ class ExcelData:
 			return
 		self.__ElData = inputElData
 		self.__CurSheet = inputSheet
-		self.m_DicData = {}
-		if self.__CurSheet < 0:
-			self.__CurSheet = 0
-			print("* set sheet to %d" % self.__CurSheet)
-		if self.__ElData.nsheets < int(self.__CurSheet) + 1:
-			self.__CurSheet = self.__ElData.nsheets - 1
-			print("* Input sheet is too big, changed it to biggest sheet: %d" % self.__CurSheet)
+		self.m_DicData = []
+		if self.__CurSheet == "":
+			self.__CurSheet = self.__ElData.sheetnames[0]
+			print("* set sheet to %s" % self.__CurSheet)
+		elif not self.__ElData.sheetnames.contains(self.__CurSheet):
+			self.__ElData._add_sheet(self.__CurSheet)
 		self.m_OutputPath = outputPath
-		self.__SheetData = self.__ElData.sheet_by_index(self.__CurSheet)
-		findFlag = False
-		for i in range(self.__SheetData.nrows - 1):
-			for j in range(len(self.__SheetData.row(i)) - 1):
-				if self.__SheetData.row(i)[j].value.find(StartFlag) != -1:
-					self.__StartPosi = Vector(j, i)
-					findFlag = True
-					break
-				if findFlag:
-					break
-		del findFlag
-		self.__DataRowLen = self.__SheetData.nrows - (self.__StartPosi.x + 1)
-		self.__DataColLen = self.__SheetData.ncols - (self.__StartPosi.y + 1)
+		self.__SheetData = self.__ElData[self.__CurSheet]
 
 	def Transform(self):
-		for i in range(self.__StartPosi.x + 1, self.__StartPosi.x + self.__DataRowLen + 1):
-			itemName = self.__SheetData.row(i)[self.__StartPosi.x].value;
-			if itemName == "" or itemName.find(JumpFlag) != -1:
+		for i in range(self.__SheetData.min_row + SkipStartRow, self.__SheetData.max_row + 1):
+			itemName = self.__SheetData.cell(row=i, column=self.__SheetData.min_column).value
+			if itemName == "" or str(itemName).find(JumpFlag) != -1:
 				continue
-			Tempdic = {}
-			for j in range(self.__StartPosi.y + 1, self.__StartPosi.y + self.__DataColLen +	 1):
-				if j != self.__StartPosi.y + 1:
-					value = self.__SheetData.row(i)[j].value
-					if type(value) == float:
-						value = int(value)
-					Tempdic[self.__SheetData.row(self.__StartPosi.x)[j].value] = value
-			self.m_DicData[self.__SheetData.row(i)[self.__StartPosi.x + 1].value] = Tempdic
+			tmpData = {}
+			for j in range(self.__SheetData.min_column + SkipStartColumn, self.__SheetData.max_column + 1):
+				value = self.__SheetData.cell(row=i, column=j).value
+				columnHead = self.__SheetData.cell(row=self.__SheetData.min_row, column=j).value
+				columnType = self.__SheetData.cell(row=self.__SheetData.min_row + 1, column=j).value
+				if builtInType.count(columnType) <= 0:
+					try:
+						obj = json.loads(value)
+						tmpData[columnHead] = obj
+					except Exception as e:
+						print("[EORROR]: {0}".format(e))
+						tmpData[columnHead] = value
+				else:
+					tmpData[columnHead] = value
+			self.m_DicData.append(tmpData)
 
 def GetHelp():
 	print(HelpInfo)
@@ -129,12 +128,12 @@ def GetVersion():
 	return
 
 def OpenExcel(Path):
-	data = xlrd.open_workbook(Path)
+	data = openpyxl.load_workbook(Path)
 	return data
 
 def GetInput(inputPath):
 	if os.path.exists(inputPath) and os.path.isfile(inputPath):
-		Edata = OpenExcel(inputPath);
+		Edata = OpenExcel(inputPath)
 	else:
 		path = os.path.join(LocalPath, inputPath)
 		if os.path.exists(path) and	os.path.isfile(path):
@@ -142,28 +141,19 @@ def GetInput(inputPath):
 	return Edata
 
 def GetOutput(outputPath):
-	if os.path.exists(outputPath):
-		if os.path.isfile(outputPath):
-			print("*Output path found:\n*-- " + outputPath)
-			return outputPath
-		else:
-			path = os.path.join(outputPath, DefualtFileName)
-			print("*Create file with default name in path:\n*-- " + path)
-			return path
+	if os.path.isfile(outputPath):
+		print("*Output path found:\n* " + outputPath)
+		return outputPath
+	elif os.path.exists(outputPath):
+		path = os.path.join(outputPath, DefualtFileName)
+		print("*Create file with default name in path:\n* " + path)
+		return path
 	else:
-		tempPath = os.path.join(LocalPath, outputPath)
-		if os.path.exists(tempPath):
-			if os.path.isfile(tempPath):
-				print("* Find file in default path:\n*-- " + tempPath)
-				return tempPath
-		else:
-			if re.match("\w+.json", outputPath) != None:		#here!!!!!!!!!!!!!!!!!!!!!!!!!
-				return tempPath
-			else:
-				print("file should named with \".json\"")
-				path = os.path.join(LocalPath, DefualtFileName)
-				print("* Not defined output path, set it with default path:\n*-- " + path)
-				return path
+		path = os.path.join(LocalPath, DefualtFileName)
+		print("* Not defined output path, set it with default path:\n* " + path)
+		return path
+
+		
 		
 
 if __name__ == '__main__':
@@ -172,27 +162,28 @@ if __name__ == '__main__':
 		GetHelp()
 		exit()
 	for opt_name, opt_value in opts:
-			if opt_name in ('-h','--help') or opt_value == "help":
-				GetHelp()
-				exit()
-			elif opt_name in ('-v', '--version'):
-				GetVersion()
-				exit()
-			elif opt_name in ('-i', '--input'):
-				InputPath = str(opt_value)
-			elif opt_name in ('-o', '--output'):
-				OutputPath = str(opt_value)
-			elif opt_name in ('-s', '--sheet'):
-				TransformSheet = int(opt_value)
+		if opt_name in ('-h','--help') or opt_value == "help":
+			GetHelp()
+			exit()
+		elif opt_name in ('-v', '--version'):
+			GetVersion()
+			exit()
+		elif opt_name in ('-i', '--input'):
+			InputPath = str(opt_value)
+		elif opt_name in ('-o', '--output'):
+			OutputPath = str(opt_value)
+		elif opt_name in ('-s', '--sheet'):
+			TransformSheet = opt_value
 
 	OutputPath = GetOutput(OutputPath)
 	Eldata = GetInput(InputPath)
 	if Eldata != None:
 		trans = ExcelData(Eldata, TransformSheet, OutputPath)
-		trans.Transform();
+		trans.Transform()
+
 		try:
-			jsonstr = json.dumps(trans.m_DicData)
 			writer = open(trans.m_OutputPath, "w")
+			jsonstr = json.dumps(trans.m_DicData, indent=4, separators=(',', ' : '))
 			writer.write(jsonstr)
 		except Exception as e:
 			print(e)

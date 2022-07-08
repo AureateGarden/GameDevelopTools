@@ -1,0 +1,82 @@
+[
+    {
+        "id" : 1,
+        "Name" : "item_01",
+        "customData" : {
+            "id" : "Str",
+            "data" : [
+                [
+                    "A",
+                    "B",
+                    "C"
+                ],
+                [
+                    "D",
+                    "E",
+                    "F"
+                ]
+            ]
+        },
+        "Radius" : 1.25
+    },
+    {
+        "id" : 2,
+        "Name" : "item_02",
+        "customData" : {
+            "id" : "Str",
+            "data" : [
+                [
+                    "A",
+                    "B",
+                    "C"
+                ],
+                [
+                    "D",
+                    "E",
+                    "F"
+                ]
+            ]
+        },
+        "Radius" : 1.35
+    },
+    {
+        "id" : 4,
+        "Name" : "item_04",
+        "customData" : {
+            "id" : "Str",
+            "data" : [
+                [
+                    "A",
+                    "B",
+                    "C"
+                ],
+                [
+                    "D",
+                    "E",
+                    "F"
+                ]
+            ]
+        },
+        "Radius" : 2.25
+    },
+    {
+        "id" : 5,
+        "Name" : "item_05",
+        "customData" : {
+            "id" : "Str",
+            "data" : [
+                [
+                    "A",
+                    "B",
+                    "C"
+                ],
+                [
+                    "D",
+                    "E",
+                    "F"
+                ]
+            ]
+        },
+        "Radius" : 1.25
+    }
+]
