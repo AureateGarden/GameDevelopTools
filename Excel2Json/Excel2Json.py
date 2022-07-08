@@ -93,7 +93,7 @@ class ExcelData:
 		if self.__CurSheet == "":
 			self.__CurSheet = self.__ElData.sheetnames[0]
 			print("* set sheet to %s" % self.__CurSheet)
-		elif not self.__ElData.sheetnames.contains(self.__CurSheet):
+		elif self.__ElData.sheetnames.count(self.__CurSheet) <= 0:
 			self.__ElData._add_sheet(self.__CurSheet)
 		self.m_OutputPath = outputPath
 		self.__SheetData = self.__ElData[self.__CurSheet]

@@ -1,23 +1,22 @@
-使用python3.7并且安装插件xlrd
+使用python3.7并且安装插件openpyxl
 
-安装方法:
-
-在有python\scripts路径情况下在cmd中输入下面的命令安装xlrd插件。
-
->pip install xlrd
+>pip install openpyxl
 
 ![](https://github.com/AureateGarden/GameDevelopTools/blob/master/Excel2Json/Temp/1.png)
-类似这样的列表，确定开始位置，在里面添加“[start]”标签且确保全表只有一个” [start]”标签，转化标志位后面一列为键，后面第二列之后转化为值。
 
 用法在cmd里面使用“python Excel2Json.py -h” 查看具体参数
 
 使用范例：
 
->python Excel2Json.py -i test.xlsx -o out.json -s 0
-
-![](https://github.com/AureateGarden/GameDevelopTools/blob/master/Excel2Json/Temp/2.png)
+>python Excel2Json.py -i test.xlsx -o Output.json -s Sheet1
 
 Develop Log:
+
+2022.7.9
+
+1. 放弃使用xlrd插件，现在使用openpyxl库进行xlsx读取。
+2. 修复了之前输出路径的Bug。
+3. 现在不再支持随机开始位置。[start]标签被遗弃。
 
 2019.8.10
 
